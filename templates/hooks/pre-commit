@@ -1,0 +1,6 @@
+#!/bin/sh
+# agent kit: private workspace files under .github must never enter the outer repository.
+if git diff --cached --name-only | grep -qE '^\.github(/|$)'; then
+  echo "pre-commit: staged paths under .github are private; unstage them with 'git restore --staged .github'." >&2
+  exit 1
+fi

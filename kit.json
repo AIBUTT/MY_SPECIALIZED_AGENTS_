@@ -1,0 +1,8 @@
+{
+  "kit_version": "1.0.0",
+  "ccds_version": "v2.3.0",
+  "ccds_release_date": "2025-07-24",
+  "ccds_repository": "https://github.com/drivendataorg/cookiecutter-data-science",
+  "default_conda_env": "DS_002",
+  "default_python_version": "3.11"
+}

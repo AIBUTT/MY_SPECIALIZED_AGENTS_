@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Stage handoff (common fields)",
+  "description": "Common fields of every handoff file. Role-specific fields are listed in each agent file and are allowed as additional properties.",
+  "type": "object",
+  "required": [
+    "run_id", "stage", "agent", "configured_model", "actual_model", "timestamp_utc", "status",
+    "environment", "inputs", "commands", "outputs", "files_changed", "checks",
+    "scientific_assumptions_changed", "unresolved", "lessons", "ready_for_next_stage"
+  ],
+  "properties": {
+    "run_id": {"type": "string", "pattern": "^[0-9]{8}_[a-z0-9_]+$"},
+    "stage": {"type": "string", "pattern": "^[0-9]{2}_[a-z_]+$"},
+    "agent": {"type": "string"},
+    "configured_model": {"type": "string"},
+    "actual_model": {"type": "string"},
+    "timestamp_utc": {"type": "string"},
+    "status": {"enum": ["accepted", "rejected", "blocked"]},
+    "environment": {
+      "type": "object",
+      "required": ["conda_env", "package_list_sha256", "git_revision"],
+      "properties": {
+        "conda_env": {"type": "string"},
+        "lock_file": {"type": "string"},
+        "package_list_sha256": {"type": "string"},
+        "git_revision": {"type": "string"}
+      }
+    },
+    "inputs": {"type": "array", "items": {"$ref": "#/$defs/file"}},
+    "config": {"$ref": "#/$defs/file"},
+    "commands": {"type": "array", "items": {"type": "string"}},
+    "outputs": {"type": "array", "items": {"$ref": "#/$defs/file"}},
+    "files_changed": {"type": "array", "items": {"type": "string"}},
+    "checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "command", "result", "passed"],
+        "properties": {
+          "name": {"type": "string"},
+          "command": {"type": "string"},
+          "result": {"type": "string"},
+          "passed": {"type": "boolean"}
+        }
+      }
+    },
+    "scientific_assumptions_changed": {"type": "array"},
+    "unresolved": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["item", "blocking"],
+        "properties": {"item": {"type": "string"}, "blocking": {"type": "boolean"}}
+      }
+    },
+    "lessons": {"type": "array", "items": {"type": "string"}},
+    "ready_for_next_stage": {"type": "boolean"}
+  },
+  "$defs": {
+    "file": {
+      "type": "object",
+      "required": ["path"],
+      "properties": {
+        "path": {"type": "string"},
+        "format": {"type": "string"},
+        "rows": {"type": "integer"},
+        "sha256": {"type": "string"}
+      }
+    }
+  }
+}

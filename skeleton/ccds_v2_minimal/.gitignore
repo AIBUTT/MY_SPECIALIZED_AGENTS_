@@ -1,0 +1,21 @@
+# Data and generated outputs are not committed by default.
+/data/**
+!/data/**/
+!/data/**/.gitkeep
+/models/**
+!/models/.gitkeep
+/runs/**
+!/runs/.gitkeep
+/build/
+
+# Python and tool caches
+__pycache__/
+*.py[cod]
+*.egg-info/
+.ipynb_checkpoints/
+.pytest_cache/
+.ruff_cache/
+
+# Local settings and secrets
+.env
+.venv/

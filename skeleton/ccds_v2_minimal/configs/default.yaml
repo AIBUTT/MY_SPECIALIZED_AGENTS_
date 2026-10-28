@@ -1,0 +1,2 @@
+# Default analysis settings. Each run copies this file into runs/<run_id>/ unchanged.
+seed: 0

@@ -1,0 +1,92 @@
+[
+  {
+    "name": "Coordinator",
+    "file": "coordinator.agent.md",
+    "model": "Claude Opus 5.5",
+    "tools": ["read", "search", "edit", "execute", "agent"],
+    "stage": "all, 09",
+    "handoffs": ["09_release.json", "06_review.json (on the reviewer's behalf)"],
+    "writes": "Handoffs, ledger",
+    "required": true
+  },
+  {
+    "name": "Data Steward",
+    "file": "data-steward.agent.md",
+    "model": "GPT-6 Luna",
+    "tools": ["read", "search", "edit", "execute"],
+    "stage": "00, 01",
+    "handoffs": ["00_extraction.json", "01_intake.json"],
+    "writes": "Input manifests; `data/raw/` (extraction only)",
+    "required": false
+  },
+  {
+    "name": "Researcher",
+    "file": "researcher.agent.md",
+    "model": "Claude Opus 5.5",
+    "tools": ["read", "search", "edit", "execute"],
+    "stage": "02",
+    "handoffs": ["02_research.json"],
+    "writes": "`runs/research/`, `reports/research/`",
+    "required": false
+  },
+  {
+    "name": "Data Architect",
+    "file": "data-architect.agent.md",
+    "model": "Claude Opus 5.5",
+    "tools": ["read", "search", "edit", "execute"],
+    "stage": "03",
+    "handoffs": ["03_design.json"],
+    "writes": "`docs/architecture/`, `configs/contracts/`",
+    "required": false
+  },
+  {
+    "name": "Data Engineer",
+    "file": "data-engineer.agent.md",
+    "model": "GPT-6 Astra",
+    "tools": ["read", "search", "edit", "execute"],
+    "stage": "04",
+    "handoffs": ["04_pipeline.json"],
+    "writes": "Code, tests, `data/interim/`, `data/processed/`, `runs/<run_id>/pipeline/`",
+    "required": false
+  },
+  {
+    "name": "ML Engineer",
+    "file": "ml-engineer.agent.md",
+    "model": "GPT-6 Astra",
+    "tools": ["read", "search", "edit", "execute"],
+    "stage": "05",
+    "handoffs": ["05_modeling.json"],
+    "writes": "Modeling code, tests, `models/<run_id>/`, `runs/<run_id>/modeling/`",
+    "required": false
+  },
+  {
+    "name": "Statistical Reviewer",
+    "file": "statistical-reviewer.agent.md",
+    "model": "GPT-6.1 Sol",
+    "tools": ["read", "search"],
+    "stage": "06",
+    "handoffs": ["Returned in chat"],
+    "writes": "None (read-only)",
+    "required": false
+  },
+  {
+    "name": "Visualizer",
+    "file": "visualizer.agent.md",
+    "model": "Claude Sonnet 5.5",
+    "tools": ["read", "search", "edit", "execute"],
+    "stage": "07",
+    "handoffs": ["07_figures.json"],
+    "writes": "`{{module_name}}/plots.py`, `reports/figures/<run_id>/`",
+    "required": false
+  },
+  {
+    "name": "Report Curator",
+    "file": "report-curator.agent.md",
+    "model": "Claude Sonnet 5.5",
+    "tools": ["read", "search", "edit"],
+    "stage": "08",
+    "handoffs": ["08_report.json"],
+    "writes": "Peer documents",
+    "required": false
+  }
+]

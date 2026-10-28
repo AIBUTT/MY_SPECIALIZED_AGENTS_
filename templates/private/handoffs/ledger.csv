@@ -1,0 +1,1 @@
+timestamp_utc,run_id,stage,agent,configured_model,actual_model,status,ready_for_next_stage,n_inputs,n_outputs,n_checks_failed,n_unresolved_blocking,n_assumptions_changed,n_lessons,package_list_sha256,handoff_path,handoff_sha256
