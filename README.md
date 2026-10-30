@@ -99,7 +99,7 @@ Re-bootstrapping is rarely needed; prefer `/evolve-agents`. If it is needed:
 The kit is a local Git repository, tagged by version.
 
 1. Change templates, prompts, or the skeleton.
-2. Run the tests: `conda run -n <env> python -m pytest -q -p no:cacheprovider` from the kit root.
+2. Run the tests: `conda run -n <env> python -m pytest -q -p no:cacheprovider tests` from the kit root.
 3. Update `kit.json` (`kit_version`) and `CHANGELOG.md`.
 4. Commit and tag: `git tag v<version>`.
 

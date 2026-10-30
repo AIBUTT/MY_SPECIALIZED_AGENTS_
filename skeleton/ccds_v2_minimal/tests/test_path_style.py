@@ -8,7 +8,7 @@ ROOT = Path(__file__).resolve().parents[1]
 CODE_DIRS = ("scripts", "{{module_name}}", "tests")
 BACKSLASH = chr(92)
 PATH_LITERAL = re.compile(
-    r"[A-Za-z]:\\|}\\[\w{]|" + re.escape(BACKSLASH * 2) + r"\w"
+    r"(?<!\w)[A-Za-z]:\\|}\\[\w{]|" + re.escape(BACKSLASH * 2) + r"\w"
 )
 
 
@@ -75,6 +75,14 @@ Path(os.path.relpath(target, start_dir)).as_posix()
 !pwd
 '''
     source += 'formatted = f"{value}' + BACKSLASH + 'n"\n'
+    assert path_violations(source, "example.py") == []
+
+
+def test_detector_allows_colon_before_escape():
+    source = r'''
+message = "Validation failed:\n"
+header = "\nData types:\n"
+'''
     assert path_violations(source, "example.py") == []
 
 

@@ -1,5 +1,14 @@
 # Kit changelog
 
+## v1.0.1 (2026-10-29)
+
+Lessons from the first existing-repository run.
+
+- Path-style test: the drive-letter pattern now requires a non-word character before the letter (`(?<!\w)[A-Za-z]:\\`), so strings such as `"failed:\n"` are no longer reported as Windows paths; new self-test.
+- Visualizer: owns the plotting cells of every notebook, including figures that are displayed but not saved; ownership table updated.
+- Handoffs: a stage that executes or edits notebooks records each notebook's SHA-256 in `outputs`; the Coordinator compares cell sources, outputs, and metadata when only a notebook hash differs.
+- README: the kit test command targets `tests`; collecting from the kit root fails on the unrendered skeleton templates.
+
 ## v1.0.0 (2026-10-28)
 
 First release, generalised from a working data-science repository.

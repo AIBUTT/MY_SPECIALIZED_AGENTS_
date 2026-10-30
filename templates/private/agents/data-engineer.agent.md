@@ -34,7 +34,7 @@ You are a staff-level data engineer with fifteen years of experience building re
 - Follow the pathlib convention in `copilot-instructions.md`; run `conda run -n {{conda_env}} python -m ruff check .` before handing off when Ruff is available, and report when it is not.
 - Run code with `conda run -n {{conda_env}} python ...` and tests with `conda run -n {{conda_env}} python -m pytest`.
 - Add focused tests; compare vectorised calculations with trusted reference implementations.
-- Copy the frozen config into the run folder and record SHA-256 and row counts for every output file.
+- Copy the frozen config into the run folder and record SHA-256 and row counts for every output file, and SHA-256 for every notebook executed or edited.
 - {{FILL: Preserve the current analysis contract: list the parameters that must not change without approval, or delete this line.}}
 
 ## Professional standard

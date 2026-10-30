@@ -64,7 +64,7 @@ Peer-facing stage gates are in `docs/WORKFLOW.md`.
 
 A chat reply is not evidence: it can be summarised, misremembered, or lost when the session ends. Each specialist writes its handoff as a file at a fixed location with fixed fields, and the Coordinator validates the file rather than the chat text.
 
-**Location:** `.github/handoffs/<run_id>/<NN>_<stage>.json`, for example `.github/handoffs/20260101_baseline/04_pipeline.json`. Handoffs reference outputs by path and never copy data. The schema is `.github/handoffs/handoff.schema.json`.
+**Location:** `.github/handoffs/<run_id>/<NN>_<stage>.json`, for example `.github/handoffs/20260101_baseline/04_pipeline.json`. Handoffs reference outputs by path and never copy data. A stage that executes or edits notebooks lists each notebook in `outputs` with its SHA-256, so later edits are detectable. The schema is `.github/handoffs/handoff.schema.json`.
 
 **Common fields:**
 
@@ -94,7 +94,7 @@ A chat reply is not evidence: it can be summarised, misremembered, or lost when 
 **How the Coordinator uses it:**
 
 1. Before invoking a specialist, the Coordinator names the handoff file it must write. The Statistical Reviewer is read-only, so the Coordinator writes `06_review.json` from its chat findings.
-2. After the specialist returns, the Coordinator opens the file, confirms that every `outputs[].path` exists, recomputes hashes, checks `inputs` against the expected manifest, and reruns any cheap check marked as passed.
+2. After the specialist returns, the Coordinator opens the file, confirms that every `outputs[].path` exists, recomputes hashes, checks `inputs` against the expected manifest, and reruns any cheap check marked as passed. When only a notebook hash differs, it compares cell sources, outputs, and metadata before treating the change as substantive; editors can re-save line endings.
 3. A stage does not advance if a check fails, `scientific_assumptions_changed` is non-empty, or `unresolved` contains a blocking item. Design changes go to the user.
 4. The next specialist receives the path of the accepted handoff file, not a paraphrase.
 5. The Coordinator appends each validated handoff to the ledger.

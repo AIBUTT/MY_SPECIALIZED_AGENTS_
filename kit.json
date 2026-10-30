@@ -1,5 +1,5 @@
 {
-  "kit_version": "1.0.0",
+  "kit_version": "1.0.1",
   "ccds_version": "v2.3.0",
   "ccds_release_date": "2025-07-24",
   "ccds_repository": "https://github.com/drivendataorg/cookiecutter-data-science",

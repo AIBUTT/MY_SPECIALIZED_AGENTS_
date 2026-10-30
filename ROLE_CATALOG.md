@@ -45,7 +45,7 @@ Each location has one owner. The Statistical Reviewer writes nothing.
 | `docs/architecture/`, `configs/contracts/` | Data Architect |
 | `data/interim/`, `data/processed/`, `runs/<run_id>/pipeline/`, `<module>/` (except below), `scripts/`, `tests/` | Data Engineer |
 | `models/<run_id>/`, `runs/<run_id>/modeling/`, `<module>/modeling/`, `tests/modeling/` | ML Engineer |
-| `<module>/plots.py`, `reports/figures/<run_id>/` | Visualizer |
+| `<module>/plots.py`, notebook plotting cells, `reports/figures/<run_id>/` | Visualizer |
 | `README.md`, `docs/` (except `docs/architecture/`), `reports/*.md`, notebook Markdown | Report Curator |
 | `.github/handoffs/<run_id>/06_review.json`, `09_release.json`, `ledger.csv` | Coordinator |
 
