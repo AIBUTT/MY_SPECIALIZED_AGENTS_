@@ -56,3 +56,25 @@ Raw inputs are placed in `data/raw/` and are never modified. Data and generated 
 ```powershell
 conda run -n {{conda_env}} python scripts/build_docs.py --open
 ```
+
+The command above produces a local browsing site, not a portable delivery.
+After deliberate installation of the optional public exporter component
+(`scripts/build_portable_docs.py`, `scripts/portable_docs.py` and
+`docs/PORTABLE_DOCS.md`), build a selected offline package:
+
+```powershell
+conda run -n {{conda_env}} python scripts/build_docs.py --portable --include reports/presentation.md --name study-summary --version 1 --date 2026-11-05 --fetch-assets
+```
+
+Create the selected report and approved figures first. The standalone equivalent is
+`conda run -n {{conda_env}} python scripts/build_portable_docs.py` with the same
+selection/label flags. Omit `--fetch-assets` after the public renderer is cached.
+The exporter requires Markdown and pymdown-extensions; obtain approval before
+installing anything. Repeat `--include` for more documents; omission selects all
+public Markdown. Existing unselected page links are annotated, not recursively added.
+
+Share `build/study-summary_v1_2026-11-05.zip`. Peers extract it and open
+`study-summary_v1_2026-11-05/index.html` with JavaScript enabled; rendering needs no
+server, Python or network. Update reviewed source files, then regenerate packages;
+never edit generated HTML. Component version 1.1.0 records selection, source/output
+hashes, renderer versions and separate package-date/UTC-generation metadata.

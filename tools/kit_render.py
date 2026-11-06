@@ -27,6 +27,8 @@ TEMPLATES = KIT_ROOT / "templates"
 PRIVATE = TEMPLATES / "private"
 HOOK = TEMPLATES / "hooks" / "pre-commit"
 SKELETON = KIT_ROOT / "skeleton" / "ccds_v2_minimal"
+COMPONENT = KIT_ROOT / "components" / "portable_docs"
+COMPONENT_VERSION = "1.1.0"
 ROLES = json.loads((TEMPLATES / "roles.json").read_text(encoding="utf-8"))
 ROLE_BY_NAME = {role["name"]: role for role in ROLES}
 
@@ -324,6 +326,129 @@ def add_role(args: argparse.Namespace) -> dict:
     }
 
 
+def component_files() -> dict[str, bytes]:
+    """One canonical core is vendored byte-for-byte, never rendered or forked."""
+    paths = {
+        "scripts/portable_docs.py": COMPONENT / "portable_docs.py",
+        "scripts/build_portable_docs.py": COMPONENT / "build_portable_docs.py",
+        "docs/PORTABLE_DOCS.md": COMPONENT / "PORTABLE_DOCS.md",
+        ".github/instructions/chat-equations.instructions.md":
+            PRIVATE / "instructions" / "chat-equations.instructions.md",
+    }
+    return {dest: source.read_bytes() for dest, source in paths.items()}
+
+
+def checked_destination(target: Path, relative: str) -> Path:
+    path = Path(relative)
+    if path.is_absolute() or path.drive or ".." in path.parts:
+        raise KitError(1, "destination must be a root-relative path without parent traversal")
+    destination = target / path
+    if not destination.resolve().is_relative_to(target.resolve()):
+        raise KitError(1, "destination escapes target through a symlink")
+    if destination.exists() and not destination.is_file():
+        raise KitError(7, f"destination is not a file: {relative}")
+    return destination
+
+
+def update_components(args: argparse.Namespace) -> dict:
+    """Focused component adoption, not a replacement of the private workspace."""
+    target = args.target.resolve()
+    marker_path = checked_destination(target, MARKER.as_posix())
+    if not marker_path.is_file():
+        raise KitError(6, "legacy repository has no kit marker; automatic component migration "
+                          "is unsupported. Use vendor-core for reviewed standalone adoption.")
+    marker = json.loads(marker_path.read_text("utf-8"))
+    files = component_files()
+    previous = marker.get("components", {}).get("portable_docs", {})
+    managed = previous.get("files", {})
+    created = {r["path"]: r["sha256"] for r in marker.get("created", [])}
+    accepted = set(getattr(args, "accept_local", []) or [])
+    if accepted - files.keys() or (accepted and not args.apply):
+        raise KitError(1, "--accept-local requires --apply and an exact component destination")
+    plan, approved = [], {}
+    for relative, data in files.items():
+        dest = checked_destination(target, relative)
+        local = sha256_bytes(dest.read_bytes()) if dest.exists() else None
+        new = sha256_bytes(data)
+        base = managed.get(relative, {}).get("local_sha256", created.get(relative))
+        upstream = managed.get(relative, {}).get("source_sha256")
+        if local == new:
+            action = "unchanged"
+        elif relative in accepted:
+            if local is None:
+                raise KitError(1, "cannot accept a missing local file")
+            action = "accept-local"
+        elif local is None:
+            action = "create"
+        elif upstream == new:
+            action = "preserve-local"
+        elif local == base and (upstream is None or base == upstream):
+            action = "update"
+        else:
+            action = "conflict"
+        plan.append({"path": relative, "action": action, "base_sha256": base,
+                     "local_sha256": local, "new_sha256": new})
+        approved[relative] = {
+            "source_sha256": new,
+            "local_sha256": (base if action == "preserve-local" else
+                             local if action == "accept-local" else new),
+        }
+    report = {"status": "preview", "component": "portable_docs",
+              "version": COMPONENT_VERSION, "files": plan,
+              "kit_version_unchanged": marker["kit_version"]}
+    if args.stage:
+        proposal_root = PROPOSALS / f"portable-docs-{COMPONENT_VERSION}"
+        proposal_files = {proposal_root / row["path"]: files[row["path"]]
+                          for row in plan if row["action"] not in {"unchanged", "preserve-local"}}
+        proposal_files[proposal_root / "plan.json"] = (
+            json.dumps(report, indent=2) + "\n"
+        ).encode("utf-8")
+        for relative, data in proposal_files.items():
+            dest = checked_destination(target, relative.as_posix())
+            if dest.exists() and dest.read_bytes() != data:
+                raise KitError(7, "proposal already exists with different content; review/remove "
+                                  f"it explicitly first: {relative.as_posix()}")
+        for relative, data in proposal_files.items():
+            dest = target / relative
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            dest.write_bytes(data)
+        report["status"] = "staged"
+    if args.apply:
+        if any(row["action"] == "conflict" for row in plan):
+            raise KitError(7, "component conflicts; preview/stage, manually merge, then explicitly "
+                              "acknowledge merged paths with --apply --accept-local <path>")
+        for row in plan:
+            if row["action"] in {"create", "update"}:
+                dest = target / row["path"]
+                dest.parent.mkdir(parents=True, exist_ok=True)
+                dest.write_bytes(files[row["path"]])
+        state = {"version": COMPONENT_VERSION, "files": approved}
+        if state != previous:
+            marker.setdefault("components", {})["portable_docs"] = state
+            marker_path.write_text(json.dumps(marker, indent=2) + "\n", encoding="utf-8")
+        report["status"] = "applied"
+    return report
+
+
+def vendor_core(args: argparse.Namespace) -> dict:
+    """Explicit legacy adapter support; no private files or kit marker are touched."""
+    target = args.target.resolve()
+    relative = Path(args.path)
+    if not relative.parts or relative.parts[0] not in {"src", "scripts"} or relative.suffix != ".py":
+        raise KitError(1, "vendor-core destination must be a public src/ or scripts/ Python file")
+    dest = checked_destination(target, args.path)
+    data = (COMPONENT / "portable_docs.py").read_bytes()
+    local = sha256_bytes(dest.read_bytes()) if dest.exists() else None
+    new = sha256_bytes(data)
+    if args.apply and local != new:
+        if local is not None and local != args.expected_sha256:
+            raise KitError(7, "existing core differs; review diff and supply --expected-sha256")
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_bytes(data)
+    return {"status": "applied" if args.apply else "preview", "path": args.path,
+            "local_sha256": local, "new_sha256": new, "version": COMPONENT_VERSION}
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -343,10 +468,24 @@ def main() -> int:
     add.add_argument("--target", type=Path, required=True)
     add.add_argument("--role", required=True)
     add.add_argument("--dry-run", action="store_true")
+    update = sub.add_parser("update-components", help="Preview portable exporter/chat adoption.")
+    update.add_argument("--target", type=Path, required=True)
+    actions = update.add_mutually_exclusive_group()
+    actions.add_argument("--stage", action="store_true", help="Create review proposals only.")
+    actions.add_argument("--apply", action="store_true", help="Explicitly approve safe changes.")
+    update.add_argument("--accept-local", action="append",
+                        help="Explicitly approve a manually merged component path; repeatable.")
+    vendor = sub.add_parser("vendor-core", help="Preview/adopt the core in a legacy public adapter.")
+    vendor.add_argument("--target", type=Path, required=True)
+    vendor.add_argument("--path", required=True)
+    vendor.add_argument("--expected-sha256")
+    vendor.add_argument("--apply", action="store_true")
     args = parser.parse_args()
 
     try:
-        result = bootstrap(args) if args.command == "bootstrap" else add_role(args)
+        commands = {"bootstrap": bootstrap, "add-role": add_role,
+                    "update-components": update_components, "vendor-core": vendor_core}
+        result = commands[args.command](args)
     except KitError as error:
         print(json.dumps({"status": "refused", "code": error.code, "reason": str(error)},
                          indent=2))

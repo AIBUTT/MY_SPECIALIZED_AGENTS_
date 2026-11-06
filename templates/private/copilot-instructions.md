@@ -53,6 +53,8 @@ Every agent acts as a staff-level practitioner in its discipline with fifteen ye
 
 ## Collaboration
 
+- Apply `instructions/chat-equations.instructions.md` to every role's chat replies: use plain ASCII equations, not raw LaTeX unless explicitly requested; retain LaTeX in report sources.
+
 - Use `.github/agents/` roles for bounded tasks. The Coordinator delegates sequentially and validates each written handoff; agents do not communicate autonomously or share memory.
 - Write each stage handoff to `.github/handoffs/<run_id>/<NN>_<stage>.json` using the fields in `.github/agents/AGENT_GUIDE.md`. The Coordinator records every accepted handoff in `.github/handoffs/ledger.csv`.
 - Follow `.github/instructions/peer-writing.instructions.md` for peer-facing files and `.github/instructions/agent-writing.instructions.md` for files under `.github/`.

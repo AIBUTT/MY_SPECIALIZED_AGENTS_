@@ -16,6 +16,7 @@ import argparse
 import html
 import os
 import re
+import sys
 import webbrowser
 from pathlib import Path
 from urllib.parse import quote, unquote
@@ -155,6 +156,15 @@ def build_site(sources: list[Path], out_dir: Path, site_title: str,
 
 
 def main() -> int:
+    if "--portable" in sys.argv[1:]:
+        try:
+            from build_portable_docs import main as portable_main
+        except ImportError as error:
+            raise SystemExit(
+                "Portable component is not installed. Install the reviewed public exporter "
+                "files first; see the source project's installation instructions."
+            ) from error
+        return portable_main([arg for arg in sys.argv[1:] if arg != "--portable"])
     parser = argparse.ArgumentParser(description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT, help="Output directory.")
